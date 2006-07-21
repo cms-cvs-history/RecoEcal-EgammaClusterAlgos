@@ -1,38 +1,70 @@
 #ifndef RecoEcal_EgammaClusterAlgos_PreshowerClusterAlgo_h
 #define RecoEcal_EgammaClusterAlgos_PreshowerClusterAlgo_h
+//
+// $Id: PreshowerClusterAlgo.h,v 1.8 2006/07/20 14:51:50 dbanduri Exp $
+//
 
+//#include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
+#include "DataFormats/EgammaReco/interface/PreshowerCluster.h"
+#include "DataFormats/EcalRecHit/interface/EcalRecHit.h"
+#include "DataFormats/Math/interface/Point3D.h"
 #include "DataFormats/EcalDetId/interface/ESDetId.h"
-#include "DataFormats/EgammaReco/interface/PreshowerCluster.h" // <===== Still does not exist!
-#include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
-#include "FWCore/Framework/interface/ESHandle.h"
-#include "Geometry/CaloEventSetup/interface/CaloTopologyRecord.h"
-#include "Geometry/CaloTopology/interface/CaloSubdetectorTopology.h"
-#include "Geometry/CaloTopology/interface/CaloTopology.h"
+#include "DataFormats/DetId/interface/DetId.h"
+#include "RecoCaloTools/Navigation/interface/EcalPreshowerNavigator.h"
+
+// C/C++ headers
+#include <string>
+#include <vector>
+#include <set>
+
+class CaloSubdetectorGeometry;
+class CaloSubdetectorTopology;
+
 
 class PreshowerClusterAlgo {
 
  public:
 
-  PreshowerClusterAlgo() : 
-  PreshStripEnergyCut_(0.), PreshClusterEnergyCut_(0.), PreshSeededNstr_(15)
-  {}
+   enum DebugLevel { pDEBUG = 0, pINFO = 1, pERROR = 2 }; 
 
-   PreshowerClusterAlgo(double StripEnergyCut, double ClusterEnergyCut, int NStripCut) :
-   PreshStripEnergyCut_(StripEnergyCut), PreshClusterEnergyCut_(ClusterEnergyCut), PreshSeededNstr_(NStripCut)
+   typedef math::XYZPoint Point;
+
+   typedef std::map<DetId, EcalRecHit> RecHitsMap;
+
+
+   PreshowerClusterAlgo() : 
+   preshStripEnergyCut_(0.), preshClusterEnergyCut_(0.), preshSeededNstr_(15), debugLevel_(pINFO)
    {}
 
-   ~PreshowerClusterAlgo();
+   PreshowerClusterAlgo(double stripEnergyCut, double clusterEnergyCut, int nStripCut, DebugLevel debugLevel = pINFO) :
+   preshStripEnergyCut_(stripEnergyCut), preshClusterEnergyCut_(clusterEnergyCut), preshSeededNstr_(nStripCut), debugLevel_(debugLevel)
+   {}
 
-   reco::PreshowerCluster makeOneCluster(ESDetId strip,  edm::ESHandle<CaloTopology> theCaloTopology);
-   void PreshHitsInit(const EcalRecHitCollection& rechits);
+   ~PreshowerClusterAlgo() {};
+
+   reco::PreshowerCluster makeOneCluster(ESDetId strip, 
+                                         RecHitsMap *rechits_map,
+                                         reco::BasicClusterRefVector::iterator basicClust_ref,
+                                         const CaloSubdetectorGeometry*& geometry_p,
+                                         CaloSubdetectorTopology*& topology_p);
+
+   bool goodStrip(RecHitsMap::iterator candidate_it);
+
+   void findRoad(ESDetId strip, EcalPreshowerNavigator theESNav, int plane);
 
  private:
   
-   double PreshStripEnergyCut_;
-   double PreshClusterEnergyCut_;
-   int PreshSeededNstr_;
+   double preshStripEnergyCut_;
+   double preshClusterEnergyCut_;
+   int preshSeededNstr_;
+   int debugLevel_;
 
-   std::map< ESDetId, std::pair<EcalRecHit, bool> >  rhits_presh;
+   std::vector<ESDetId> road_2d;
+
+   // The map of hits
+   RecHitsMap *rechits_map;
+   // The set of used DetID's
+   std::set<DetId> used_s;
 
 };
 #endif
