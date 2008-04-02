@@ -182,7 +182,8 @@ void HybridClusterAlgo::mainSearch(const EcalRecHitCollection* hits, const CaloS
     for (int i=0;i<phi_steps;++i){
       //remember, this always increments the current position of the navigator.
       DetId centerD = navigator.north();
-
+      if (centerD.null())
+	continue;
       EcalBarrelNavigator dominoNav(centerD, topo);
       
       //Go get the new domino.
@@ -203,8 +204,10 @@ void HybridClusterAlgo::mainSearch(const EcalRecHitCollection* hits, const CaloS
     for (int i=0;i<phi_steps;++i){
       //remember, this always decrements the current position of the navigator.
       DetId centerD = navigator.south();
+      if (centerD.null())
+	continue;
       EcalBarrelNavigator dominoNav(centerD, topo);
-      
+
       //Go get the new domino.
       std::vector <EcalRecHit> dcells;
       double etemp = makeDomino(dominoNav, dcells);
@@ -460,8 +463,11 @@ double HybridClusterAlgo::makeDomino(EcalBarrelNavigator &navigator, std::vector
   
   //Now check the energy.  If smaller than Ewing, then we're done.  If greater than Ewing, we have to
   //add two additional cells, the 'wings'
-  if (Etot < Ewing) return Etot;  //Done!  Not adding 'wings'.
-  
+  if (Etot < Ewing) 
+    {
+      navigator.home();
+      return Etot;  //Done!  Not adding 'wings'.
+    }
   //Add the extra 'wing' cells.  Remember, we haven't sent the navigator home,
   //we're still on the DownEta cell.
   if (ieta2 != DetId(0)){
