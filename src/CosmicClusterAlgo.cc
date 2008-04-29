@@ -203,7 +203,7 @@ void CosmicClusterAlgo::makeCluster(const EcalRecHitCollection* hits,
    {
       EcalRecHitCollection::const_iterator itt = hits->find(*it);
       EcalRecHit hit_p = *itt;
-      if (hit_p.energy() >= 0.027) 
+      if (hit_p.energy() >= -1.) 
 	  {
 		energy += hit_p.energy(); //JHaupt only add if greatr than 27 MeV... reevaluate this WARNING!!
 		if (hit_p.energy() > energySecond ) {energySecond = hit_p.energy(); detSec = (EBDetId )hit_p.id();}
@@ -282,9 +282,9 @@ void CosmicClusterAlgo::prepareCluster(CaloNavigator<DetId> &navigator,
    // region with crystals that were previously able to seed
    // change their status so they are not able to seed
    //std::cout << std::endl;
-   for (int dx = -1; dx < 2; ++dx) //for (int dx = -2; dx < 3; ++dx)
+   for (int dx = -2; dx < 3; ++dx) //for (int dx = -2; dx < 3; ++dx)
    {
-      for (int dy = -1; dy < 2; ++ dy) //for (int dy = -2; dy < 3; ++ dy)
+      for (int dy = -2; dy < 3; ++ dy) //for (int dy = -2; dy < 3; ++ dy)
       {
 
 	  // navigate in free steps forming
@@ -339,10 +339,9 @@ void CosmicClusterAlgo::addCrystal(const DetId &det)
 	    used_s.insert(det);
 	    if (find(maskedChannels_.begin(), maskedChannels_.end(), ((EBDetId)thisIt->id()).hashedIndex()) == maskedChannels_.end())
 	     //std::cout << "   ... this is a good crystal and will be added" << std::endl;
-        if (thisIt->energy() >= 0.027)
-        {		
-		 current_v.push_back(det);
-         
+	      if (thisIt->energy() >= -1.)
+		{		
+		  current_v.push_back(det);
 		}
       }
    } 
