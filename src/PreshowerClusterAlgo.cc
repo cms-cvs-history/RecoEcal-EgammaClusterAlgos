@@ -1,7 +1,6 @@
 #include <vector>
 #include <map>
 
-#include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
 #include "RecoEcal/EgammaClusterAlgos/interface/PreshowerClusterAlgo.h"
 #include "RecoCaloTools/Navigation/interface/EcalPreshowerNavigator.h"
 #include "Geometry/CaloGeometry/interface/CaloSubdetectorGeometry.h"

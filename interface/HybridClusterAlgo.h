@@ -10,7 +10,6 @@
 #include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
 #include "Geometry/CaloGeometry/interface/CaloSubdetectorGeometry.h"
 #include "Geometry/CaloGeometry/interface/CaloGeometry.h"
-#include "Geometry/CaloTopology/interface/EcalBarrelHardcodedTopology.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalEtaPhiRegion.h"
 #include "RecoEcal/EgammaCoreTools/interface/PositionCalc.h"
@@ -73,8 +72,9 @@ class HybridClusterAlgo
   // colection of all rechits
   const EcalRecHitCollection *recHits_;
 
-  // topology
-  EcalBarrelHardcodedTopology *topo_;
+
+  // geometry
+  const CaloSubdetectorGeometry* geometry;
 
   //  SuperClusterShapeAlgo* SCShape_;
 
@@ -105,23 +105,22 @@ class HybridClusterAlgo
   //The real constructor
   HybridClusterAlgo(double eb_str, 
 		    int step,
-		    double ethres,
 		    double eseed,
-                    double ewing,
+		    double ewing,
+                    double ethres,
                     const PositionCalc& posCalculator,
 //                    bool dynamicPhiRoad = false,
-                    DebugLevel debugLevel = pINFO,
 		    bool dynamicEThres = false,
                     double eThresA = 0,
-                    double eThresB = 0.1);
+                    double eThresB = 0.1,
 //                    const edm::ParameterSet &bremRecoveryPset,
+		    DebugLevel debugLevel = pINFO);
 
   // destructor
   ~HybridClusterAlgo() 
   {
      if (dynamicPhiRoad_) delete phiRoadAlgo_;
-     delete topo_; 
-    //     delete SCShape_;
+     //     delete SCShape_;
   } 
 
   void setDynamicPhiRoad(const edm::ParameterSet &bremRecoveryPset)
@@ -138,7 +137,7 @@ class HybridClusterAlgo
 		    const std::vector<EcalEtaPhiRegion>& regions = std::vector<EcalEtaPhiRegion>());
 
   //Make superclusters from the references to the BasicClusters in the event.
-  reco::SuperClusterCollection makeSuperClusters(const reco::CaloClusterPtrVector&);
+  reco::SuperClusterCollection makeSuperClusters(const reco::BasicClusterRefVector&);
 
   //The routine doing the real work.
   void mainSearch(const EcalRecHitCollection* hits, const CaloSubdetectorGeometry * geometry);
