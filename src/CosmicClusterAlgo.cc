@@ -70,10 +70,20 @@ std::vector<reco::BasicCluster> CosmicClusterAlgo::makeClusters(
          {
             std::cout << "-------------------------------------------------------------" << std::endl;
             std::cout << "No Uncalibrated RecHits no Uncalibrated rec hit collection available" << std::endl;
-			continue;
          }
+         continue;
 	  }
-	  
+  
+          // if rechit affected by features other than these, do not allow if seeding
+	  // features are hard coded, for now; add severity?
+	  uint32_t rhFlag = (*it).recoFlag();
+          if (!(
+		rhFlag == EcalRecHit::kGood      ||
+		rhFlag == EcalRecHit::kOutOfTime ||
+		rhFlag == EcalRecHit::kPoorCalib
+		)
+	      ) continue;
+
 	  EcalUncalibratedRecHitCollection::const_iterator itt =  uncalibRecHits_->find(it->id());
 	  
 	  if (itt == uncalibRecHits_->end()){  
@@ -81,12 +91,13 @@ std::vector<reco::BasicCluster> CosmicClusterAlgo::makeClusters(
          {
             std::cout << "-------------------------------------------------------------" << std::endl;
             std::cout << "No Uncalibrated RecHit associated with the RecHit Probably no Uncalibrated rec hit collection available" << std::endl;
-			continue;
 		 }
+             continue;
 	  }
 	  
       EcalUncalibratedRecHit uhit_p = *itt;
-	  
+
+      // looking for cluster seeds	  
 	  if (uhit_p.amplitude() <  (inEB ? ecalBarrelSeedThreshold : ecalEndcapSeedThreshold) ) continue; // 
 	  
 	  const CaloCellGeometry *thisCell = geometry_p->getGeometry(it->id());
@@ -227,6 +238,23 @@ void CosmicClusterAlgo::makeCluster(
    std::vector<DetId>::iterator it;
    for (it = current_v9.begin(); it != current_v9.end(); it++)
    {
+     // Martina - check recoFlag for crystals sorrounding the good one 
+     EcalRecHitCollection::const_iterator itt = recHits_->find(*it);
+     // double-check that iterator can be dereferenced   
+     if(itt==recHits_->end()) continue; 
+     EcalRecHit hit_p = *itt;
+     // if rechit affected by features other than these, do not allow 2 crystal seeding either
+     // features are hard coded, for now; add severity?
+     uint32_t rhFlag = (*itt).recoFlag();
+     if (!(
+	   rhFlag == EcalRecHit::kGood      ||
+	   rhFlag == EcalRecHit::kOutOfTime ||
+	   rhFlag == EcalRecHit::kPoorCalib
+	   )
+	 ) continue;
+     
+     ///
+
       EcalUncalibratedRecHitCollection::const_iterator ittu = uncalibRecHits_->find(*it);
       EcalUncalibratedRecHit uhit_p = *ittu;
 	  
@@ -272,7 +300,7 @@ void CosmicClusterAlgo::makeCluster(
 //       std::cout << "JH****Emax****  "<<energyMax << " ieta " <<detFir.ieta() <<" iphi "<<detFir.ieta()  << std::endl;
 //       std::cout << "JH****Esec****  "<<energySecond << " ieta " <<detSec.ieta() <<" iphi "<<detSec.ieta() << std::endl;
     }
-   clusters_v.push_back(reco::BasicCluster(energy, position, reco::CaloID(), current_v25Sup, reco::CaloCluster::island));
+   clusters_v.push_back(reco::BasicCluster(energy, position, reco::CaloID(), current_v25Sup, reco::CaloCluster::multi5x5));
 }
 
 bool CosmicClusterAlgo::checkMaxima(CaloNavigator<DetId> &navigator)
