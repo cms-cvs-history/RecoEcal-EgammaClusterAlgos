@@ -234,7 +234,6 @@ bool Multi5x5ClusterAlgo::checkMaxima(CaloNavigator<DetId> &navigator,
    bool maxima = true;
    EcalRecHitCollection::const_iterator thisHit;
    EcalRecHitCollection::const_iterator seedHit = hits->find(navigator.pos());
-   double thisEnergy = 0.;
    double seedEnergy = seedHit->energy();
 
    std::vector<DetId> swissCrossVec;
@@ -253,9 +252,11 @@ bool Multi5x5ClusterAlgo::checkMaxima(CaloNavigator<DetId> &navigator,
    for (unsigned int i = 0; i < swissCrossVec.size(); ++i)
    {
       thisHit = recHits_->find(swissCrossVec[i]);
-      if  ((swissCrossVec[i] == DetId(0)) || thisHit == recHits_->end()) thisEnergy = 0.0;
-      else thisEnergy = thisHit->energy();
-      if (thisEnergy > seedEnergy)
+
+      //continue if the hits was not found
+      if  ((swissCrossVec[i] == DetId(0)) || thisHit == recHits_->end()) continue;
+
+      if (thisHit->energy() > seedEnergy)
       {
          maxima = false;
          break;

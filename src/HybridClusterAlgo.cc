@@ -95,14 +95,9 @@ void HybridClusterAlgo::makeClusters(const EcalRecHitCollection*recColl,
       if (!regional || withinRegion) {
 
 	//Must pass seed threshold
-	// - make an additional check that the seed is able to
-	// make a seed basic cluster as well
-        EcalBarrelNavigator navigator(it->id(), topo_);
-        std::vector <EcalRecHit> initialdomino;
-        double e_init = makeDomino(navigator, initialdomino);
-	//
+
         float ET = it->energy() * sin(position.theta());
-	if (ET > eb_st && e_init > Eseed){
+	if (ET > eb_st){
 	  seeds.push_back(*it);
 	  if ( debugLevel_ == pDEBUG ){
 	    std::cout << "Seed ET: " << ET << std::endl;
@@ -200,6 +195,7 @@ void HybridClusterAlgo::mainSearch(const EcalRecHitCollection* hits, const CaloS
     //First, the domino about the seed:
     std::vector <EcalRecHit> initialdomino;
     double e_init = makeDomino(navigator, initialdomino);
+    if (e_init < Eseed) continue;
 
     if ( debugLevel_ == pDEBUG )
       {
