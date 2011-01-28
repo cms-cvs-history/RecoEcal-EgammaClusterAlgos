@@ -7,6 +7,7 @@
 #include <vector>
 #include <set>
 #include "RecoEcal/EgammaCoreTools/interface/ClusterEtLess.h"
+#include "RecoLocalCalo/EcalRecAlgos/interface/EcalSeverityLevelAlgo.h"
 
 //The real constructor
 HybridClusterAlgo::HybridClusterAlgo(double eb_str, 
@@ -21,9 +22,9 @@ HybridClusterAlgo::HybridClusterAlgo(double eb_str,
 				     double eThresA,
 				     double eThresB,
 				     std::vector<int> severityToExclude,
-				     double severityRecHitThreshold,
-				     int severitySpikeId,
-				     double severitySpikeThreshold,
+				     //double severityRecHitThreshold,
+				     //int severitySpikeId,
+				     //double severitySpikeThreshold,
 				     bool excludeFromCluster
 				     ) :
   
@@ -31,11 +32,14 @@ HybridClusterAlgo::HybridClusterAlgo(double eb_str,
   eThres_(ethres), eThresA_(eThresA), eThresB_(eThresB),
   Eseed(eseed),  Ewing(ewing), 
   dynamicEThres_(dynamicEThres), debugLevel_(debugLevel),
-  v_chstatus_(v_chstatus), v_severitylevel_(severityToExclude),severityRecHitThreshold_(severityRecHitThreshold), severitySpikeThreshold_(severitySpikeThreshold), excludeFromCluster_(excludeFromCluster)
+  v_chstatus_(v_chstatus), v_severitylevel_(severityToExclude),
+  //severityRecHitThreshold_(severityRecHitThreshold),
+  //severitySpikeThreshold_(severitySpikeThreshold),
+  excludeFromCluster_(excludeFromCluster)
   
   
 {
-  spId_ = EcalSeverityLevelAlgo::SpikeId(severitySpikeId);
+
   dynamicPhiRoad_ = false;
   if ( debugLevel_ == pDEBUG ) {
     //std::cout << "dynamicEThres: " << dynamicEThres_ 
@@ -55,9 +59,9 @@ HybridClusterAlgo::HybridClusterAlgo(double eb_str,
 void HybridClusterAlgo::makeClusters(const EcalRecHitCollection*recColl, 
 				     const CaloSubdetectorGeometry*geometry,
 				     reco::BasicClusterCollection &basicClusters,
+				     const EcalSeverityLevelAlgo * sevLv,
 				     bool regional,
-				     const std::vector<EcalEtaPhiRegion>& regions,
-				     const EcalChannelStatus*chStatus
+				     const std::vector<EcalEtaPhiRegion>& regions
 				     )
 {
   //clear vector of seeds
@@ -125,12 +129,8 @@ void HybridClusterAlgo::makeClusters(const EcalRecHitCollection*recColl,
 	      excludedCrys_.insert(it->id());
 	    continue; // the recHit has to be excluded from seeding
 	  }
-	  int severityFlag =  EcalSeverityLevelAlgo::severityLevel( it->id(), 
-								  (*recHits_), 
-								  (*chStatus),
-								  severityRecHitThreshold_,
-								  spId_,
-								  severitySpikeThreshold_);
+
+	  int severityFlag =  sevLv->severityLevel( it->id(), *recHits_);
 	  std::vector<int>::const_iterator sit = std::find( v_severitylevel_.begin(), v_severitylevel_.end(), severityFlag);
 	  if (debugLevel_ == pDEBUG){
 	    std::cout << "found flag: " << severityFlag << std::endl;
